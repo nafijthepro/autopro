@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Real-Time Parallel OTP Sender</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { padding: 8px; margin-top: 5px; width: 250px; }
+    button { cursor: pointer; }
+    pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<h2>Real-Time Parallel OTP Sender (Binge → Bikroy fallback)</h2>
+<form id="otpForm">
+    <label>Phone number:</label><br>
+    <input type="text" name="phone" placeholder="+8801XXXXXXXXX" required><br><br>
+
+    <label>Number of attempts (1-10):</label><br>
+    <input type="number" name="attempts" min="1" max="10" value="1"><br><br>
+
+    <button type="submit">Send OTP</button>
+</form>
+
+<h3>Results:</h3>
+<pre id="result"></pre>
+
+<script>
+const form = document.getElementById('otpForm');
+const result = document.getElementById('result');
+
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    result.textContent = "Starting OTP attempts...\n";
+
+    const phone = form.phone.value.trim();
+    const attempts = form.attempts.value;
+
+    if(!phone) {
+        alert("Please enter a valid phone number.");
+        return;
+    }
+
+    // Use EventSource with query params
+    const evtSource = new EventSource(`/send-live-otp?phone=${encodeURIComponent(phone)}&attempts=${encodeURIComponent(attempts)}`);
+
+    evtSource.onmessage = function(event) {
+        try {
+            const data = JSON.parse(event.data);
+            result.textContent += `Attempt ${data.attempt}: ${data.service} → ${data.status}\n`;
+        } catch (err) {
+            console.error("Parsing error:", err);
+        }
+    };
+
+    evtSource.onerror = function(err) {
+        result.textContent += "\nFinished sending OTPs.\n";
+        evtSource.close();
+    };
+});
+</script>
+</body>
+</html>
