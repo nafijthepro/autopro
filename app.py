@@ -20,7 +20,7 @@ def send_single_otp(phone, attempt_number):
             "referer": "https://binge.buzz/"
         }, timeout=5)
         if binge_resp.status_code == 200:
-            result.update({"service": "Binge", "status": "success", "response": binge_resp.json()})
+            result.update({"service": "Binge", "status": "success"})
             return result
         else:
             raise Exception("Binge failed")
@@ -33,7 +33,7 @@ def send_single_otp(phone, attempt_number):
                 "referer": "https://bikroy.com/?login-modal=true&redirect-url=/"
             }, timeout=5)
             if bikroy_resp.status_code == 200:
-                result.update({"service": "Bikroy", "status": "success", "response": bikroy_resp.json()})
+                result.update({"service": "Bikroy", "status": "success"})
             else:
                 result.update({"service": "Bikroy", "status": "failed"})
         except Exception as e:
@@ -50,10 +50,10 @@ def otp_generator(phone, attempts):
 def index():
     return render_template('index.html')
 
-@app.route('/send-live-otp', methods=['POST'])
+@app.route('/send-live-otp')
 def send_live_otp():
-    phone = request.form.get('phone')
-    attempts = int(request.form.get('attempts', 1))
+    phone = request.args.get('phone')
+    attempts = int(request.args.get('attempts', 1))
     if not phone:
         return "Phone number required", 400
     if attempts < 1 or attempts > 10:
